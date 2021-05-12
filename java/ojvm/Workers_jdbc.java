@@ -13,7 +13,10 @@
 */
  
 import java.sql.*;
+import oracle.jdbc.*;
 import oracle.jdbc.driver.*;
+import oracle.jdbc.pool.OracleDataSource;
+
 
 public class Workers_jdbc 
 {
@@ -39,32 +42,20 @@ public class Workers_jdbc
      pos = args[1];
      sal = Integer.parseInt(args[2]);     
     
-       /*
-     	* Where is your code running: in the database or outside?
-     	*/
-     	if (System.getProperty("oracle.jserver.version") != null)
-  	{
-  	/* 
-   	* You are in the database, already connected, use the default 
-   	* connection
-   	*/
-  	conn = DriverManager.getConnection("jdbc:default:connection:");
-  	System.out.println ("Running in OracleJVM,  in the database!");
-  	}
-  	else
-  	{
-  	/* 
+  		/* 
    	* You are not in the database, you need to connect to 
    	* the database
    	*/
 
+
    	DriverManager.registerDriver(new oracle.jdbc.OracleDriver());  
-   	conn = DriverManager.getConnection("jdbc:oracle:thin:", 
-         				         "testuser", "<your_db_password>");
         System.out.println ("Running in JDK VM, outside the database!");
-        }
-   
-     
+
+		OracleDataSource ods = new OracleDataSource();
+		ods.setURL("jdbc:oracle:thin:hr/hr@//ora192rac-scan/pdb4.jks.com");
+		conn = ods.getConnection();
+
+		 
      /* 
       * Auto commit is off by default in OracleJVM (not supported)
       * Set auto commit off in JDBC case
@@ -76,23 +67,21 @@ public class Workers_jdbc
      
      /*
       * find the name of the workers given his id number
-      */
+     */
         
-      // create statement
-         stmt = conn.createStatement();
+      stmt = conn.createStatement();
       
       // find the name of the worker 
-         ResultSet rset = stmt.executeQuery(
-               "SELECT WNAME FROM workers WHERE wid = " + id);
+      ResultSet rset = stmt.executeQuery( "SELECT WNAME FROM workers WHERE wid = " + id);
 
       // retrieve and print the result (we are only expecting 1 row
-         while (rset.next()) 
-         {
-          name = rset.getString(1);
-         }
+      while (rset.next()) 
+      {
+         name = rset.getString(1);
+      }
     
       // return the name of the worker who has the given worker number
-         System.out.println ("Worker Name: "+ name);
+      System.out.println ("Worker Name: "+ name);
        
       /*
        * update the position and salary of the retrieved worker
@@ -125,6 +114,8 @@ public class Workers_jdbc
         
      // Close the Statement
         stmt.close();
+	  // jkstill - added commit
+	  conn.commit();
   
      // Stop timing
         t1=System.currentTimeMillis(); 

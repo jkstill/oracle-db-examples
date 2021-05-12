@@ -1,7 +1,7 @@
 rem
 rem Workers.sql
 rem
-connect hr/hr@pdb1
+connect hr/hr@ora192rac-scan/pdb4.jks.com
 
 rem
 rem Set up the Workers table
